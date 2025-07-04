@@ -11,8 +11,8 @@ interface ProtectedRouteProps {
 
 // 認証ガード機能を提供するコンポーネント
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    // 認証状態を取得
-    const { user, loading, token } = useAuth();
+    // 認証状態を取得 (userは後日使用)
+    const { /* user, */ loading, token } = useAuth();
 
     // 認証状態の読み込み中：ローディング表示
     if (loading) {

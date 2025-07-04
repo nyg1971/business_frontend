@@ -1,7 +1,7 @@
 // Rails API との通信を管理する共通クライアント
 import axios from 'axios';
 import type { AxiosResponse, AxiosError } from 'axios';
-import type { AuthResponse, User, Customer, ApiResponse, ApiError } from "../types/api";
+import type { AuthResponse, User, Customer, /*ApiResponse,*/ ApiError } from "../types/api";
 
 const API_BASE_URL = "/api/v1";
 

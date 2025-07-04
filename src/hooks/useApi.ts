@@ -5,13 +5,12 @@ import { AxiosResponse } from "axios";
 interface UseApiState<T> {
     data: T | null;     // API から取得したデータ（取得前は null）
     loading: boolean;   // 通信中フラグ
-    error: string || null; // エラーメッセージ（エラーなしの場合は null）
+    error: string | null; // エラーメッセージ（エラーなしの場合は null）
 }
 
 // 汎用的なAPI通信フック（ジェネリック型で型安全性を確保）
 export const useApi = <T>(
-    apiCall: () => Promise<AxiosResponse<T>>, // 実行するAPI関数
-    dependencies: any[] = []    // useEffect の依存配列
+    apiCall: () => Promise<AxiosResponse<T>> // 実行するAPI関数
 ): UseApiState<T> => {
     // API通信の状態管理
     const [state, setState] = useState<UseApiState<T>>({
@@ -31,8 +30,8 @@ export const useApi = <T>(
                 const response = await apiCall();
 
                 // 成功：データを状態に保存
-                setState(prev => ( data: response.data, loading: false, error: null );
-            } catch (error: any) {
+                setState(() => ( { data: response.data, loading: false, error: null } ));
+            } catch (error: unknown) {
                 setState({
                    data: null,
                    loading: false,
@@ -42,6 +41,6 @@ export const useApi = <T>(
         };
 
         fetchData();    // API通信を実行
-    }, dependencies);   // 依存配列が変更されたら再実行
+    }, [apiCall]);   // 依存配列が変更されたら再実行
     return state;  // 現在の状態を返す
 };
