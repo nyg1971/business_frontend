@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate  } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material';
+import CssBaseline from '@mui/material/CssBaseline';
+import { AuthProvider } from './context/AuthContext';
+import LoginForm from './components/auth/LoginForm';
+import CustomerList from "./components/customer/CustomerList";
+import ProtectedRoute from './components/common/ProtectedRoute';
+import Layout from './components/common/Layout';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Material-UI のテーマ設定
+const theme = createTheme({
+        palette: {
+            primary: { main: '#1976d2' },
+            secondary: { main: '#dc0004' }
+        }
+});
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+const App: React.FC = () => {
+    return (
+        <ThemeProvider theme={theme}>
+            {/* CSS リセット・正規化 */}
+            <CssBaseline />
+
+            {/* 認証状態を全体で管理 */}
+            <AuthProvider>
+                <Router>
+                    <Routes>
+                        {/* ログイン画面：認証不要 */}
+                        <Route path="/login" element={<LoginForm />} />
+
+                        {/* ルートパス：顧客一覧にリダイレクト */}
+                        <Route path="/" element={<Navigate to="/customers" />} />
+
+                        {/* 顧客一覧画面：認証必須 */}
+                        <Route
+                            path="/customers"
+                            element={
+                            <ProtectedRoute>
+                                {/* 共通レイアウト（ヘッダー・ナビ等）で包む */}
+                                <Layout>
+                                    <CustomerList />
+                                </Layout>
+                            </ProtectedRoute>
+                        } />
+                    </Routes>
+                </Router>
+            </AuthProvider>
+        </ThemeProvider>
+    )
 }
 
 export default App
