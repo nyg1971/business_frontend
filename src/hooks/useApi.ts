@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AxiosResponse } from "axios";
+import type { AxiosResponse } from "axios";
 
 // フックが返す状態の型定義
 interface UseApiState<T> {
