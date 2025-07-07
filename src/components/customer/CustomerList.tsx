@@ -14,6 +14,8 @@ import {
     Box,
     Alert
 } from '@mui/material';
+import CustomerFilters from './CustomerFilters';
+import type { FilterState } from './CustomerFilters';
 
 // 顧客データの型定義
 interface Customer {
@@ -60,16 +62,20 @@ const fetchCustomers = async (): Promise<CustomersResponse> => {
 };
 
 const CustomerList: React.FC = () => {
-
+    // 基本状態管理
     const [customersData, setCustomersData] = useState<CustomersResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
+    // フィルター状態管理
+    const [filters, setFilters] = useState<FilterState>({
+        searchName: '',
+        customerType: '',
+        status: ''
+    });
     const loadCustomers = async () => {
         try {
             setLoading(true);
             const data = await fetchCustomers();
-            console.log('Direct useEffect - data:', data);
             setCustomersData(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
@@ -81,6 +87,22 @@ const CustomerList: React.FC = () => {
     useEffect(() => {
         loadCustomers();
     }, []);
+
+    // フィルター処理関数
+    const getFilteredCustomers = (): Customer[] => {
+        if(!customersData) return [];
+        return customersData.customers.filter((customer) => {
+            const nameMatch = filters.searchName === '' || customer.name.toLowerCase().includes(filters.searchName.toLowerCase());
+            const typeMatch = filters.customerType === '' || customer.customer_type === filters.customerType;
+            const statusMatch = filters.status === '' || customer.status === filters.status;
+            return nameMatch && typeMatch && statusMatch;
+        });
+    }
+
+    // フィルター変更ハンドラー
+    const handleFiltersChange = (newFilters: FilterState) => {
+        setFilters(newFilters);
+    };
 
     // ローディング状態
     if (loading) {
@@ -114,7 +136,9 @@ const CustomerList: React.FC = () => {
         );
     }
 
-    const { customers, pagination } = customersData;
+    const { pagination } = customersData;
+    // フィルター済み顧客データ取得
+    const filteredCustomers = getFilteredCustomers();
 
     return (
         <Box>
@@ -123,10 +147,38 @@ const CustomerList: React.FC = () => {
                 顧客一覧
             </Typography>
 
-            {/* 統計情報 */}
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                全 {pagination.total_count} 件の顧客
-            </Typography>
+
+            {/* 検索・フィルター */}
+            <CustomerFilters
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+            />
+
+            {/* 結果統計情報 */}
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                    {filteredCustomers.length > 0 ? (
+                        <>
+                            {filteredCustomers.length} 件表示
+                            {filteredCustomers.length !== customersData.customers.length &&
+                                ` (全 ${customersData.customers.length} 件中)`
+                            }
+                        </>
+                    ) : (
+                        <>検索条件に一致する顧客が見つかりません</>
+                    )}
+                </Typography>
+
+                {/* フィルター適用中の表示 */}
+                {(filters.searchName || filters.customerType || filters.status) && (
+                    <Chip
+                        label="フィルター適用中"
+                        color="primary"
+                        size="small"
+                        variant="outlined"
+                    />
+                )}
+            </Box>
 
             {/* 顧客一覧テーブル */}
             <TableContainer component={Paper} sx={{ mt: 2 }}>
@@ -142,7 +194,7 @@ const CustomerList: React.FC = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {customers.map((customer) => (
+                        {filteredCustomers.map((customer) => (
                             <TableRow key={customer.id} hover>
                                 <TableCell>
                                     <Typography variant="body1" fontWeight="medium">
